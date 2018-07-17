@@ -1,25 +1,72 @@
 import React from 'react'
+import { map, append, reject, propEq } from 'ramda'
+import Description from './description'
 
-const App = (props) => {
-  const {state, setState} = props
+import Add from './add'
+
+const App = props => {
+  const { state, setState } = props
   return (
-    <div style={style.centerContent}>
-      <h1>react-todo App</h1>
-      <p>Count: {state.count}</p>
+    <main>
+      <header>
+        <h1>Todo App</h1>
+        <Add
+          onNewItem={todo => setState({ todos: append(todo, state.todos) })}
+        />
+      </header>
       <div>
-      <button onClick={() => setState(p => ({count: p.count + 1}))}>+</button>
-      <button onClick={() => setState(p => ({count: p.count - 1}))}>-</button>
+        <button>remove all completed items</button>
       </div>
-    </div>
+      <ul>{map(li, state.todos)}</ul>
+      <button>all</button>
+      <button>uncomplete</button>
+      <button>completed</button>
+    </main>
   )
-}
 
-const style = {
-  centerContent: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'column'
+  function li(todo) {
+    return (
+      <li key={todo.id}>
+        <input
+          type="checkbox"
+          checked={todo.completed}
+          onChange={() => {
+            const newList = map(t => {
+              if (t.id === todo.id) {
+                t.completed = !t.completed
+              }
+              return t
+            }, state.todos)
+            setState({ todos: newList })
+          }}
+        />
+        <Description
+          value={todo.desc}
+          onSubmit={desc =>
+            setState({
+              todos: map(t => {
+                if (todo.id === t.id) {
+                  t.desc = desc
+                }
+                return t
+              }, state.todos)
+            })
+          }
+        />
+        <button
+          type="button"
+          onClick={() => {
+            if (confirm('Are you sure?')) {
+              setState({
+                todos: reject(propEq('id', todo.id), state.todos)
+              })
+            }
+          }}
+        >
+          remove
+        </button>
+      </li>
+    )
   }
 }
 
